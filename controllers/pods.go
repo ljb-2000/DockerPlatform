@@ -2,16 +2,24 @@ package controllers
 
 import (
 	"encoding/json"
-	"github.com/astaxie/beego"
+	// "github.com/astaxie/beego"
 	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 type PodsController struct {
-	beego.Controller
+	baseControllers
 }
 
-func (c *PodsController) Get() {
-	namespaces := c.GetString("namespaces", "")
+func (this *PodsController) Get() {
+	username := this.GetSession("username").(string)
+
+	namespaces := ""
+	if CheckAdmin(username) {
+		namespaces = this.GetString("namespaces")
+	} else {
+		namespaces = username
+	}
+
 	url := "http://10.10.7.175:8081/pods/list"
 
 	//json 序列化
@@ -20,17 +28,17 @@ func (c *PodsController) Get() {
 	jsonStr, _ := json.Marshal(jsonmap)
 
 	//post数据
-	result, _ := DoPost(url, jsonStr)
+	result, _ := Request("POST", url, jsonStr)
 
 	var podslist []v1.Pod
 	json.Unmarshal([]byte(result), &podslist)
 
-	c.Data["podslist"] = podslist
+	this.Data["podslist"] = podslist
 
-	c.Layout = "layout.html"
-	c.TplName = "pods.html"
-	c.LayoutSections = make(map[string]string)
-	c.LayoutSections["HtmlHead"] = "html_head.html"
-	c.LayoutSections["BodyHead"] = "body_head.html"
-	c.LayoutSections["Sidebar"] = "sidebar.html"
+	this.Layout = "layout.html"
+	this.TplName = "pods.html"
+	this.LayoutSections = make(map[string]string)
+	this.LayoutSections["HtmlHead"] = "html_head.html"
+	this.LayoutSections["BodyHead"] = "body_head.html"
+	this.LayoutSections["Sidebar"] = "sidebar.html"
 }

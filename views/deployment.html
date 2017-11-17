@@ -1,11 +1,11 @@
 <section id="main-content">
     <section class="wrapper">
-		<div class="row mt">
+        <div class="row mt">
             <div class="col-md-12">
                 <div class="content-panel">
-                    <table class="table table-striped table-advance table-hover">
-              	  	  <h4><i class="fa fa-angle-right"></i> Deployment
-          <div class="btn-group">
+                    <table class="table table-striped table-condensed table-hover">
+                        <h4><i class="fa fa-angle-right"></i> Deployment
+          <!-- <div class="btn-group">
         <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
           namespaces <span class="caret"></span>
         </button>
@@ -14,56 +14,53 @@
           <li><a href="#">Another action</a></li>
           <li><a href="#">Something else here</a></li>
         </ul>
-      </div>
+      </div> -->
                       </h4>
-       
-              	  	  <hr>
+                        <hr>
                         <thead>
-                        <tr>
-                            <th><i class="fa fa-bullhorn"></i> Name</th>
-                            <th class="hidden-phone"><i class="fa fa-question-circle"></i>Namespaces</th>
-                            <th><i class="fa fa-bookmark"></i> Create Time</th>
-                            <th><i class=" fa fa-edit"></i> Replcas</th>
-                            <!-- <th><i class=" fa fa-edit"></i> Container</th> -->
-                            <th><i class=" fa fa-edit"></i> Images</th>
-                            <th><i class=" fa fa-edit"></i>Operation</th>
-                        </tr>
+                            <tr>
+                                <th>Name</th>
+                                <th>Namespaces</th>
+                                <th>Create Time</th>
+                                <th>Replcas</th>
+                                <!-- <th><i class=" fa fa-edit"></i> Container</th> -->
+                                <th>Images</th>
+                                <!-- <th>Operation</th> -->
+                            </tr>
                         </thead>
                         <tbody>
-                        {{range .deploymentlist}}
-                        <tr>
-                        	
-                        		<td><a href="basic_table.html#">{{.ObjectMeta.Name}}</a></td>
-                            	<td class="hidden-phone">{{.ObjectMeta.Namespace}}</td>
-                            	<td>{{.ObjectMeta.CreationTimestamp}}</td>
-                            	<td>{{.Spec.Replicas}}</span></td>
-                              <td>
-                              {{range .Spec.Template.Spec.Containers}}
-                                <!-- <td>{{.Name}}</span></td> -->
-                                {{.Image}}<br/>
-                              {{end}}
-                              </td>
-                            	<td>
-                            	    <button class="btn btn-success btn-xs"><i class="fa fa-check"	></i></button>
-                            	    <button class="btn btn-primary btn-xs"><i class="fa fa-pencil	"></i></button>
-                            	    <button class="btn btn-danger btn-xs"><i class="fa 	fa-trash-o "></i></button>
-                            	</td>
-                        	
-                        </tr>
-                        {{end}}
+                            {{range .deploymentlist}}
+                            <tr>
+                                <td>{{.ObjectMeta.Name}}</td>
+                                <td class="hidden-phone">{{.ObjectMeta.Namespace}}</td>
+                                <td>{{.ObjectMeta.CreationTimestamp}}</td>
+                                <td>{{.Spec.Replicas}}</span>
+                                </td>
+                                <td>
+                                    {{range .Spec.Template.Spec.Containers}}
+                                    <!-- <td>{{.Name}}</span></td> -->
+                                    {{.Image}}
+                                    <br/> {{end}}
+                                </td>
+                                <!--                                 <td>
+                                    <button class="btn btn-success btn-xs"><i class="fa fa-check"></i></button>
+                                    <button class="btn btn-primary btn-xs"><i class="fa fa-pencil "></i></button>
+                                    <button class="btn btn-danger btn-xs"><i class="fa  fa-trash-o "></i></button>
+                                </td> -->
+                            </tr>
+                            {{end}}
                         </tbody>
                     </table>
-                </div><!-- /content-panel -->
-            </div><!-- /col-md-12 -->
-        </div><!-- /row -->
-			
-			
-			
+                </div>
+                <!-- /content-panel -->
+            </div>
+            <!-- /col-md-12 -->
+        </div>
+        <!-- /row -->
     </section>
-</section><!-- /MAIN CONTENT -->
-
-
-          <!-- <script src="static/js/jquery.js"></script> -->
+</section>
+<!-- /MAIN CONTENT -->
+<!-- <script src="static/js/jquery.js"></script> -->
 <script src="static/js/jquery-1.8.3.min.js"></script>
 <script src="static/js/bootstrap.min.js"></script>
 <script class="include" type="text/javascript" src="static/js/jquery.dcjqaccordion.2.7.js"></script>
@@ -72,9 +69,8 @@
 <script src="static/js/common-scripts.js"></script>
 <script type="text/javascript" src="static/js/gritter/js/jquery.gritter.js"></script>
 <script type="text/javascript" src="static/js/gritter-conf.js"></script>
-
 <script>
-    document.getElementById("kubernetes").setAttribute("class", "active dcjq-parent")
-    document.getElementById("kubernetes-sub").setAttribute("style", "display: block")
-    document.getElementById("deployment").setAttribute("class", "active")
+document.getElementById("kubernetes").setAttribute("class", "active dcjq-parent")
+document.getElementById("kubernetes-sub").setAttribute("style", "display: block")
+document.getElementById("deployment").setAttribute("class", "active")
 </script>

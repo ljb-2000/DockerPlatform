@@ -2,17 +2,25 @@ package controllers
 
 import (
 	"encoding/json"
-	"github.com/astaxie/beego"
+	// "github.com/astaxie/beego"
 	v1beta1 "k8s.io/client-go/pkg/apis/apps/v1beta1"
 	"strings"
 )
 
 type DeploymentController struct {
-	beego.Controller
+	baseControllers
 }
 
-func (c *DeploymentController) Get() {
-	namespaces := c.GetString("namespaces", "")
+func (this *DeploymentController) Get() {
+	username := this.GetSession("username").(string)
+
+	namespaces := ""
+	if CheckAdmin(username) {
+		namespaces = this.GetString("namespaces")
+	} else {
+		namespaces = username
+	}
+
 	url := "http://10.10.7.175:8081/deployment/list"
 
 	//json 序列化
@@ -21,7 +29,7 @@ func (c *DeploymentController) Get() {
 	jsonStr, _ := json.Marshal(jsonmap)
 
 	//post数据
-	result, _ := DoPost(url, jsonStr)
+	result, _ := Request("POST", url, jsonStr)
 
 	// json数据错误，去掉(MISSING)字符串
 	str := string(result)
@@ -33,11 +41,11 @@ func (c *DeploymentController) Get() {
 	var deploymentlist []v1beta1.Deployment
 	json.Unmarshal(jsonStr2, &deploymentlist)
 
-	c.Data["deploymentlist"] = deploymentlist
-	c.Layout = "layout.html"
-	c.TplName = "deployment.html"
-	c.LayoutSections = make(map[string]string)
-	c.LayoutSections["HtmlHead"] = "html_head.html"
-	c.LayoutSections["BodyHead"] = "body_head.html"
-	c.LayoutSections["Sidebar"] = "sidebar.html"
+	this.Data["deploymentlist"] = deploymentlist
+	this.Layout = "layout.html"
+	this.TplName = "deployment.html"
+	this.LayoutSections = make(map[string]string)
+	this.LayoutSections["HtmlHead"] = "html_head.html"
+	this.LayoutSections["BodyHead"] = "body_head.html"
+	this.LayoutSections["Sidebar"] = "sidebar.html"
 }

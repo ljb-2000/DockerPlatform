@@ -2,35 +2,28 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
-	"github.com/astaxie/beego"
-	"io/ioutil"
+	// "github.com/astaxie/beego"
 	v1 "k8s.io/client-go/pkg/api/v1"
-	"net/http"
 )
 
 type NamespacesController struct {
-	beego.Controller
+	baseControllers
 }
 
-func (c *NamespacesController) Get() {
-	resp, err := http.Get("http://10.10.7.175:8081/namespaces/list")
-	if err != nil {
-		fmt.Println(err)
-	}
+func (this *NamespacesController) Get() {
+	url := "http://10.10.7.175:8081/namespaces/list"
 
-	result, _ := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
+	result, _ := Request("GET", url, nil)
 
 	var namespacelist []v1.Namespace
 	json.Unmarshal([]byte(result), &namespacelist)
 
-	c.Data["namespaceslist"] = namespacelist
+	this.Data["namespaceslist"] = namespacelist
 
-	c.Layout = "layout.html"
-	c.TplName = "namespaces.html"
-	c.LayoutSections = make(map[string]string)
-	c.LayoutSections["HtmlHead"] = "html_head.html"
-	c.LayoutSections["BodyHead"] = "body_head.html"
-	c.LayoutSections["Sidebar"] = "sidebar.html"
+	this.Layout = "layout.html"
+	this.TplName = "namespaces.html"
+	this.LayoutSections = make(map[string]string)
+	this.LayoutSections["HtmlHead"] = "html_head.html"
+	this.LayoutSections["BodyHead"] = "body_head.html"
+	this.LayoutSections["Sidebar"] = "sidebar.html"
 }

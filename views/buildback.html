@@ -1,0 +1,212 @@
+<section id="main-content">
+    <section class="wrapper">
+        <div class="row mt">
+            <div class="col-md-12">
+                <div class="content-panel">
+                    <table class="table table-striped table-condensed table-hover">
+                        <h4><i class="fa fa-angle-right"></i> <a href="buildlist.html"> 构建列表</a><i class="fa fa-angle-right"></i> 构建</h4>
+                        <hr>
+                        <thead>
+                            <tr>
+                                <th> 代码仓库名称</th>
+                                <th> 代码仓库地址</th>
+                                <th> 操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="repoid" hidden="true">{{.repos.Id}}</td>
+                                <td class="hidden-phone">{{.repos.RepoName}}</td>
+                                <td class="hidden-phone giturl">{{.repos.Url}}</td>
+                                <td>
+                                    <button class="btn btn-success btn-xs build">构建</button>
+                                    <button class="btn btn-danger btn-xs deleterepo">删除</button>
+                                    <button class="btn btn-primary btn-xs">日志</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /content-panel -->
+            </div>
+            <!-- /col-md-12 -->
+            <div id="resp" class="col-md-8 mt" style="display: none;">
+                <h4> 构建日志</h4>
+                <div class="content-panel">
+                    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                        <div class="panel panel-default" id="one" style="display: none;">
+                            <div class="panel-heading" role="tab" id="headingOne">
+                                <h4 class="panel-title">
+                      <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true"               aria-controls="collapseOne" id="collapseheadone" style="color: green">
+                        克隆代码
+                      </a>
+                    </h4>
+                            </div>
+                            <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                                <div class="panel-body" id="cloneresp" style="height: 100%; background: #333; color: #aaa;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default" id="two" style="display: none;">
+                            <div class="panel-heading" role="tab" id="headingTwo">
+                                <h4 class="panel-title">
+                      <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="              false" aria-controls="collapseTwo" id="collapseheadtwo" style="color: green">
+                        构建
+                      </a>
+                    </h4>
+                            </div>
+                            <div id="collapseTwo" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingTwo">
+                                <div class="panel-body" id="buildresp" style="height: 100%; background: #333; color: #aaa;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default" id="three" style="display: none;">
+                            <div class="panel-heading" role="tab" id="headingThree">
+                                <h4 class="panel-title">
+                      <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded              ="false" aria-controls="collapseThree" id="collapseheadthree" style="color: green" >
+                        上传镜像库
+                      </a>
+                    </h4>
+                            </div>
+                            <div id="collapseThree" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingThree">
+                                <div class="panel-body" id="pushresp" style="height: 100%; background: #333; color: #aaa;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /content-panel -->
+            </div>
+            <!-- /col-md-12 -->
+        </div>
+    </section>
+</section>
+<script src="static/js/jquery-1.8.3.min.js"></script>
+<script src="static/js/bootstrap.min.js"></script>
+<script class="include" type="text/javascript" src="static/js/jquery.dcjqaccordion.2.7.js"></script>
+<script src="static/js/jquery.scrollTo.min.js"></script>
+<script src="static/js/jquery.nicescroll.js" type="text/javascript"></script>
+<script src="static/js/common-scripts.js"></script>
+<script type="text/javascript" src="static/js/gritter/js/jquery.gritter.js"></script>
+<script type="text/javascript" src="static/js/gritter-conf.js"></script>
+<script>
+document.getElementById("buildlist").setAttribute("class", "active")
+
+$('.deleterepo').click(function() {
+    var repoid = $(this).parent("td").siblings(".repoid").text()
+    $.ajax({
+        url: 'api/repo/delete',
+        type: 'post',
+        dataType: 'json',
+        data: {
+            'repoid': repoid,
+        },
+        success: function(data) {
+            if (data['status'] == '200') {
+                location.replace('/buildlist.html');
+            } else if (data['status'] == '300') {
+                alert("failed")
+            }
+        },
+        error: function() {
+            alert('failed!');
+        }
+    });
+})
+
+$('.build').click(function() {
+    var resp = document.getElementById("resp")
+    resp.style.display = 'block'
+
+    var giturl = $(this).parent("td").siblings(".giturl").text()
+    $.ajax({
+        url: 'api/pipelinetoclone',
+        type: 'post',
+        dataType: 'json',
+        data: {
+            'giturl': giturl,
+        },
+        success: function(data) {
+            if (data['status'] == '200') {
+                var msg = data['msg']
+                msg = msg.replace(/\n/g, "<br/>");
+                var div1 = document.getElementById("one");
+                $("#cloneresp").html(msg)
+                div1.style.display = 'block'
+                pipelinetobuild(giturl)
+            } else if (data['status'] == '300') {
+                var msg = data['err']
+                msg = msg.replace(/\n/g, "<br/>");
+                var div1 = document.getElementById("one");
+                $("#cloneresp").html(msg)
+                div1.style.display = 'block'
+                document.getElementById("collapseheadone").style.color = 'red';
+            }
+        },
+        error: function() {
+            alert('failed!');
+        }
+    });
+})
+
+function pipelinetobuild(giturl) {
+    $.ajax({
+        url: 'api/pipelinetobuild',
+        type: 'post',
+        dataType: 'json',
+        data: {
+            'giturl': giturl,
+        },
+        success: function(data) {
+            if (data['status'] == '200') {
+                var msg = data['msg']
+                msg = msg.replace(/\n/g, "<br/>");
+                var div2 = document.getElementById("two");
+                $("#buildresp").html(msg)
+                div2.style.display = 'block'
+                pipelinetopush(giturl)
+            } else if (data['status'] == '300') {
+                var msg = data['err']
+                msg = msg.replace(/\n/g, "<br/>");
+                var div2 = document.getElementById("two");
+                $("#buildresp").html(msg)
+                div2.style.display = 'block'
+                document.getElementById("collapseheadtwo").style.color = 'red';
+            }
+        },
+        error: function() {
+            alert('failed!');
+        }
+    });
+}
+
+function pipelinetopush(giturl) {
+    $.ajax({
+        url: 'api/pipelinetopush',
+        type: 'post',
+        dataType: 'json',
+        data: {
+            'giturl': giturl,
+        },
+        success: function(data) {
+            if (data['status'] == '200') {
+                var msg = data['msg']
+                msg = msg.replace(/\n/g, "<br/>");
+                var div3 = document.getElementById("three");
+                $("#pushresp").html(msg)
+                div3.style.display = 'block'
+            } else if (data['status'] == '300') {
+                var msg = data['err']
+                msg = msg.replace(/\n/g, "<br/>");
+                var div3 = document.getElementById("three");
+                $("#pushresp").html(msg)
+                div3.style.display = 'block'
+                document.getElementById("collapseheadthree").style.color = 'red';
+            }
+        },
+        error: function() {
+            alert('failed!');
+        }
+    });
+}
+</script>
