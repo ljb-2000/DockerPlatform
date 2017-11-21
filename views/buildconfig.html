@@ -7,6 +7,20 @@
                     <form class="form-horizontal" action="/buildconfig.html" , method="post">
                         <input type="hidden" name="id" value="{{.id}}" />
                         <div class="form-group">
+                            <label for="name" class="col-sm-2 control-label">名称</label>
+                            <div class="col-sm-10">
+                                <input name="name" type="text" class="form-control" value={{.name}}>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="name" class="col-sm-2 control-label">版本
+                              <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="可为空，为空即从pom.xml文件获取版本"></span>
+                            </label>
+                            <div class="col-sm-10">
+                                <input name="version" type="text" class="form-control" value={{.version}}>
+                            </div>
+                        </div>
+                        <div class="form-group">
                             <label for="name" class="col-sm-2 control-label">构建命令</label>
                             <div class="col-sm-10">
                                 <textarea name="buildcmd" class="form-control" rows="3" placeholder={{.buildmsg}}>{{.buildmsg}}</textarea>
@@ -31,4 +45,7 @@
 </section>
 <script type="text/javascript">
 document.getElementById("buildlist").setAttribute("class", "active")
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})
 </script>

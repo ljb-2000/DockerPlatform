@@ -275,6 +275,7 @@ function pipelinetopush(giturl, logfile) {
         data: {
             'giturl': giturl,
             'logfile': logfile,
+            'id': {{.repos.Id}},
         },
         success: function(data) {
             if (data['status'] == '200') {

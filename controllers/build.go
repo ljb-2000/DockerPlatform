@@ -28,14 +28,28 @@ func (this *BuildController) BuildConfigForGet() {
 	idtoint, _ := strconv.Atoi(id)
 	o := orm.NewOrm()
 
+	//获取版本库信息
 	repos := &models.Bitbucket{Id: idtoint}
 	o.Read(repos)
 
+	//获取 构建信息
 	var pipeline models.Pipeline
 	o.QueryTable("pipeline").Filter("Bitbucket", idtoint).One(&pipeline)
 
+	name := ""
+	version := ""
 	buildmsg := ""
 	dockerfilemsg := ""
+	if len(pipeline.Name) != 0 {
+		name = pipeline.Name
+	} else {
+		name = ""
+	}
+	if len(pipeline.Version) != 0 {
+		version = pipeline.Version
+	} else {
+		version = ""
+	}
 	if len(pipeline.BuildMsg) != 0 {
 		buildmsg = pipeline.BuildMsg
 	} else {
@@ -49,6 +63,8 @@ func (this *BuildController) BuildConfigForGet() {
 
 	this.Data["id"] = id
 	this.Data["repos"] = repos
+	this.Data["name"] = name
+	this.Data["version"] = version
 	this.Data["buildmsg"] = buildmsg
 	this.Data["dockerfilemsg"] = dockerfilemsg
 	this.Layout = "layout.html"
@@ -63,6 +79,9 @@ func (this *BuildController) BuildConfigForGet() {
 func (this *BuildController) BuildConfigForPost() {
 	id := this.GetString("id")
 	idtoint, _ := strconv.Atoi(id)
+
+	name := this.GetString("name")
+	version := this.GetString("version")
 	buildcmd := this.GetString("buildcmd")
 	dockerfilemsg := this.GetString("dockerfilemsg")
 
@@ -70,11 +89,18 @@ func (this *BuildController) BuildConfigForPost() {
 	bitbucket := models.Bitbucket{Id: idtoint}
 	_ = o.Read(&bitbucket)
 
-	pipeline := models.Pipeline{BuildMsg: buildcmd, Dockerfile: dockerfilemsg, Bitbucket: &bitbucket}
+	pipeline := models.Pipeline{
+		Name:       name,
+		Version:    version,
+		BuildMsg:   buildcmd,
+		Dockerfile: dockerfilemsg,
+		Bitbucket:  &bitbucket}
 	_, err := o.Insert(&pipeline)
 	if err != nil {
 		var pipeline models.Pipeline
 		o.QueryTable("pipeline").Filter("Bitbucket", idtoint).One(&pipeline)
+		pipeline.Name = name
+		pipeline.Version = version
 		pipeline.BuildMsg = buildcmd
 		pipeline.Dockerfile = dockerfilemsg
 		o.Update(&pipeline)
@@ -357,6 +383,7 @@ func (this *BuildController) PipelineToPush() {
 	datadir := beego.AppConfig.String("datadir")
 	giturl := this.GetString("giturl")
 	logfile := this.GetString("logfile")
+	id := this.GetString("id")
 	username := this.GetSession("username").(string)
 	arr1 := strings.Split(giturl, "/")
 	arr2 := strings.Split(arr1[len(arr1)-1], ".")
@@ -370,17 +397,23 @@ func (this *BuildController) PipelineToPush() {
 	f, _ := ioutil.ReadFile(logfile)
 	json.Unmarshal(f, &msg)
 
-	// clonedir := "/tmp/" + username + "/" + projectname
+	// 获取应用名称和版本
+	idtoint, _ := strconv.Atoi(id)
+	o := orm.NewOrm()
+	var pipeline models.Pipeline
+	o.QueryTable("pipeline").Filter("Bitbucket", idtoint).One(&pipeline)
+	name := pipeline.Name
+	version := pipeline.Version
+
+	// 定义克隆地址
 	clonedir := filepath.Join(datadir, "gitcode", username, projectname)
 
-	pomfile := clonedir + "/pom.xml"
-
-	os.Chdir(clonedir)
-
-	pommsg := GetPomMsg(pomfile)
-	version := pommsg.Version
-	artifactid := pommsg.ArtifactId
-	app := "alpine-" + artifactid
+	// 如果构建数据库中没有版本，则从pom文件中获取
+	if len(version) == 0 {
+		pomfile := clonedir + "/pom.xml"
+		pommsg := GetPomMsg(pomfile)
+		version = pommsg.Version
+	}
 
 	// 默认以用户名为harbor项目名
 	harborpro := username
@@ -388,12 +421,36 @@ func (this *BuildController) PipelineToPush() {
 		CreateHarborPro(harborpro)
 	}
 
-	image := "harbor.gqichina.com/" + harborpro + "/" + app + ":" + version + "-" + time.Now().Format("20060102-150405")
-	imagelatst := "harbor.gqichina.com/" + harborpro + "/" + app + ":latest\n"
+	// 进入代码目录，根据dockerfile进行打包
+	os.Chdir(clonedir)
+	// 打包并上传harbor仓库
+	image := "harbor.gqichina.com/" + harborpro + "/" + name + ":" + version + "-" + time.Now().Format("20060102-150405")
+	imagelatst := "harbor.gqichina.com/" + harborpro + "/" + name + ":latest\n"
 	cmdtobuild := "docker build -t " + image + " --build-arg APP_VERSION=" + version + " ./\n"
 	cmdtotag := "docker tag " + image + " " + imagelatst
 	cmdtopushimage := "docker push " + image + "\n"
 	cmdtopushimagelatst := "docker push " + imagelatst
+
+	// pomfile := clonedir + "/pom.xml"
+	// os.Chdir(clonedir)
+
+	// pommsg := GetPomMsg(pomfile)
+	// version := pommsg.Version
+	// artifactid := pommsg.ArtifactId
+	// app := "alpine-" + artifactid
+
+	// 默认以用户名为harbor项目名
+	// harborpro := username
+	// if !CheckHarborProExist(harborpro) {
+	// 	CreateHarborPro(harborpro)
+	// }
+
+	// image := "harbor.gqichina.com/" + harborpro + "/" + app + ":" + version + "-" + time.Now().Format("20060102-150405")
+	// imagelatst := "harbor.gqichina.com/" + harborpro + "/" + app + ":latest\n"
+	// cmdtobuild := "docker build -t " + image + " --build-arg APP_VERSION=" + version + " ./\n"
+	// cmdtotag := "docker tag " + image + " " + imagelatst
+	// cmdtopushimage := "docker push " + image + "\n"
+	// cmdtopushimagelatst := "docker push " + imagelatst
 
 	in := bytes.NewBuffer(nil)
 	var out bytes.Buffer

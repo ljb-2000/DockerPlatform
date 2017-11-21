@@ -23,6 +23,8 @@ type Bitbucket struct {
 
 type Pipeline struct {
 	Id         int
+	Name       string
+	Version    string
 	BuildMsg   string
 	Dockerfile string     `orm:"size(1000)"`
 	Bitbucket  *Bitbucket `orm:"rel(one)"`
