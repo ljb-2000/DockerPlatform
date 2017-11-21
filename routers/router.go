@@ -36,6 +36,8 @@ func init() {
 
 	beego.Router("/buildlist.html", &controllers.BuildController{}, "get:List")
 	beego.Router("/build.html", &controllers.BuildController{})
+	beego.Router("/buildconfig.html", &controllers.BuildController{}, "get:BuildConfigForGet")
+	beego.Router("/buildconfig.html", &controllers.BuildController{}, "post:BuildConfigForPost")
 	beego.Router("/api/build/add", &controllers.BuildController{})
 
 	// api/repo/delete

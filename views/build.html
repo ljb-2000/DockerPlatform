@@ -20,6 +20,7 @@
                                 <td class="hidden-phone giturl">{{.repos.Url}}</td>
                                 <td>
                                     <button class="btn btn-success btn-xs build">构建</button>
+                                    <a class="btn btn-primary btn-xs" href="buildconfig.html?id={{.repos.Id}}">配置</a>
                                     <button class="btn btn-danger btn-xs deleterepo">删除</button>
                                 </td>
                             </tr>
@@ -29,7 +30,13 @@
                 <!-- /content-panel -->
             </div>
             <!-- /col-md-12 -->
-            <div class="col-md-2 mt">
+            <div class="col-md-12 mt">
+                <div id="alert" class="alert alert-danger alert-dismissible" role="alert" style="display: none;">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <strong>Warning!</strong> 请先点击配置按钮，输入构建命令。
+                </div>
+            </div>
+            <div class="col-md-2">
                 <div class="content-panel">
                     <h4><i class="fa fa-angle-right"></i> 历史日志</h4>
                     <!-- <hr> -->
@@ -43,7 +50,7 @@
                 </div>
             </div>
             <!-- /col-md-12 -->
-            <div id="resp" class="col-md-10 mt" style="display: none;">
+            <div id="resp" class="col-md-10" style="display: none;">
                 <div class="content-panel">
                     <h4><i class="fa fa-angle-right"></i> Pipeline</h4>
                     <hr>
@@ -120,7 +127,7 @@ $(function() {
 
         if (log.clone) {
             var clone = log.clone.replace(/\n/g, "<br/>");
-        } 
+        }
         if (log.build) {
             var build = log.build.replace(/\n/g, "<br/>");
         }
@@ -139,6 +146,13 @@ $(function() {
         var div3 = document.getElementById("three");
         $("#pushresp").html(push)
         div3.style.display = 'block'
+    }
+})
+
+$(function () {
+    var warning = {{.warning}}
+    if (warning) {
+        document.getElementById("alert").style.display="block"
     }
 })
 
@@ -225,6 +239,7 @@ function pipelinetobuild(giturl, logfile) {
         data: {
             'giturl': giturl,
             'logfile': logfile,
+            'id': {{.repos.Id}},
         },
         success: function(data) {
             if (data['status'] == '200') {

@@ -17,7 +17,15 @@ type Bitbucket struct {
 	Id       int
 	RepoName string
 	Url      string
-	User     *User `orm:"rel(fk)"`
+	User     *User     `orm:"rel(fk)"`
+	Pipeline *Pipeline `orm:"reverse(one)"`
+}
+
+type Pipeline struct {
+	Id         int
+	BuildMsg   string
+	Dockerfile string     `orm:"size(1000)"`
+	Bitbucket  *Bitbucket `orm:"rel(one)"`
 }
 
 type Message struct {
@@ -26,11 +34,11 @@ type Message struct {
 
 func RegisterDB() {
 
-	orm.RegisterModel(new(User), new(Bitbucket))
+	orm.RegisterModel(new(User), new(Bitbucket), new(Pipeline))
 
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 
-	orm.RegisterDataBase("default", "mysql", "root:123456@tcp(127.0.0.1:3306)/dockerplatform?charset=utf8", 30)
+	orm.RegisterDataBase("default", "mysql", "root:123456@tcp(10.10.35.1:32770)/dockerplatform?charset=utf8", 30)
 
 	orm.RunSyncdb("default", false, true)
 

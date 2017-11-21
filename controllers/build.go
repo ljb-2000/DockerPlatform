@@ -21,6 +21,70 @@ type BuildController struct {
 	baseControllers
 }
 
+func (this *BuildController) BuildConfigForGet() {
+	id := this.GetString("id")
+
+	// get bitbucket msg
+	idtoint, _ := strconv.Atoi(id)
+	o := orm.NewOrm()
+
+	repos := &models.Bitbucket{Id: idtoint}
+	o.Read(repos)
+
+	var pipeline models.Pipeline
+	o.QueryTable("pipeline").Filter("Bitbucket", idtoint).One(&pipeline)
+
+	buildmsg := ""
+	dockerfilemsg := ""
+	if len(pipeline.BuildMsg) != 0 {
+		buildmsg = pipeline.BuildMsg
+	} else {
+		buildmsg = "mvn package"
+	}
+	if len(pipeline.Dockerfile) != 0 {
+		dockerfilemsg = pipeline.Dockerfile
+	} else {
+		dockerfilemsg = ""
+	}
+
+	this.Data["id"] = id
+	this.Data["repos"] = repos
+	this.Data["buildmsg"] = buildmsg
+	this.Data["dockerfilemsg"] = dockerfilemsg
+	this.Layout = "layout.html"
+	this.TplName = "buildconfig.html"
+	this.LayoutSections = make(map[string]string)
+	this.LayoutSections["HtmlHead"] = "html_head.html"
+	this.LayoutSections["BodyHead"] = "body_head.html"
+	this.LayoutSections["Sidebar"] = "sidebar.html"
+
+}
+
+func (this *BuildController) BuildConfigForPost() {
+	id := this.GetString("id")
+	idtoint, _ := strconv.Atoi(id)
+	buildcmd := this.GetString("buildcmd")
+	dockerfilemsg := this.GetString("dockerfilemsg")
+
+	o := orm.NewOrm()
+	bitbucket := models.Bitbucket{Id: idtoint}
+	_ = o.Read(&bitbucket)
+
+	pipeline := models.Pipeline{BuildMsg: buildcmd, Dockerfile: dockerfilemsg, Bitbucket: &bitbucket}
+	_, err := o.Insert(&pipeline)
+	if err != nil {
+		var pipeline models.Pipeline
+		o.QueryTable("pipeline").Filter("Bitbucket", idtoint).One(&pipeline)
+		pipeline.BuildMsg = buildcmd
+		pipeline.Dockerfile = dockerfilemsg
+		o.Update(&pipeline)
+
+	}
+
+	this.Redirect("/build.html?id="+id, 302)
+
+}
+
 func (this *BuildController) Post() {
 	username := this.GetSession("username").(string)
 	name := this.GetString("name")
@@ -31,6 +95,7 @@ func (this *BuildController) Post() {
 	o := orm.NewOrm()
 	user := models.User{Name: username}
 	_ = o.Read(&user, "Name")
+
 	bitbucket := models.Bitbucket{RepoName: strings.ToLower(name), Url: url, User: &user}
 	o.Insert(&bitbucket)
 
@@ -66,7 +131,7 @@ func (this *BuildController) List() {
 	_ = o.Read(&user, "Name")
 
 	var repos []*models.Bitbucket
-	orm.NewOrm().QueryTable("bitbucket").Filter("User", user.Id).RelatedSel().All(&repos)
+	orm.NewOrm().QueryTable("bitbucket").Filter("User", user.Id).All(&repos)
 
 	this.Data["repos"] = repos
 	this.Layout = "layout.html"
@@ -77,6 +142,7 @@ func (this *BuildController) List() {
 	this.LayoutSections["Sidebar"] = "sidebar.html"
 }
 
+// 进入单独构建页面 ip:port/build.html?id=1
 func (this *BuildController) Get() {
 	datadir := beego.AppConfig.String("datadir")
 	username := this.GetSession("username").(string)
@@ -88,14 +154,23 @@ func (this *BuildController) Get() {
 	repos := models.Bitbucket{Id: bitid}
 	o.Read(&repos)
 
+	// 判断pipeline 表是否有该id的数据
+	// @warning: true build.html页面显示警告信息
+	// @warning: false 不显示
+	var pipeline models.Pipeline
+	var warning bool
+	err := o.QueryTable("pipeline").Filter("Bitbucket", bitid).One(&pipeline)
+	if err != nil {
+		warning = true
+	} else {
+		warning = false
+	}
+
+	// 获取构建日志名，并追加到临时列表
 	projectname := repos.RepoName
-
 	builddir := filepath.Join(datadir, "pipelogs", username, projectname)
-
 	logfile, _ := ioutil.ReadDir(builddir)
-
 	var logfilelist []string
-
 	for _, v := range logfile {
 		logfilelist = append(logfilelist, v.Name())
 	}
@@ -113,6 +188,7 @@ func (this *BuildController) Get() {
 	this.Data["id"] = repos.Id
 	this.Data["repos"] = repos
 	this.Data["logfilelist"] = logfilelist
+	this.Data["warning"] = warning
 	this.Layout = "layout.html"
 	this.TplName = "build.html"
 	this.LayoutSections = make(map[string]string)
@@ -209,26 +285,38 @@ func (this *BuildController) PipelineToBuild() {
 	datadir := beego.AppConfig.String("datadir")
 	giturl := this.GetString("giturl")
 	logfile := this.GetString("logfile")
+	id := this.GetString("id")
 	username := this.GetSession("username").(string)
+
+	//获取应用名
 	arr1 := strings.Split(giturl, "/")
 	arr2 := strings.Split(arr1[len(arr1)-1], ".")
 	projectname := arr2[0]
-
-	// tmpdir := "/tmp" + username
-	// os.Mkdir(tmpdir, 0777)
-
-	// clonedir := "/tmp/" + username + "/" + projectname
-	clonedir := filepath.Join(datadir, "gitcode", username, projectname)
 
 	// 记录构建日志
 	msg := make(map[string]string)
 	f, _ := ioutil.ReadFile(logfile)
 	json.Unmarshal(f, &msg)
 
-	// pipeline -> build
+	// 构建代码
+	clonedir := filepath.Join(datadir, "gitcode", username, projectname)
 	os.Chdir(clonedir)
-	err, out, _ := Shellout("mvn package")
+	idtoint, _ := strconv.Atoi(id)
+	o := orm.NewOrm()
+	var pipeline models.Pipeline
+	o.QueryTable("pipeline").Filter("Bitbucket", idtoint).One(&pipeline)
+	buildcmd := pipeline.BuildMsg
+	buildcmd = strings.TrimSpace(buildcmd)
+	buildcmd = strings.Replace(buildcmd, "\n", "&&", -1)
 
+	if strings.Contains(buildcmd, "rm") {
+		this.Data["json"] = map[string]string{"status": "300", "err": string("请勿输入危险命令: " + buildcmd)}
+		this.ServeJSON()
+	}
+
+	err, out, _ := Shellout(buildcmd)
+
+	//返回json信息
 	if err != nil {
 		this.Data["json"] = map[string]string{"status": "300", "err": string(out)}
 	} else {

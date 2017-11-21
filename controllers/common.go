@@ -28,6 +28,7 @@ func init() {
 	beego.InsertFilter("/buildforadmin.html", beego.BeforeRouter, FilterUser)
 	beego.InsertFilter("/buildlist.html", beego.BeforeRouter, FilterUser)
 	beego.InsertFilter("/ingress.html", beego.BeforeRouter, FilterUser)
+	beego.InsertFilter("/buildconfig.html", beego.BeforeRouter, FilterUser)
 	// beego.InsertFilter("/jenkins.html", beego.BeforeRouter, FilterUser)
 
 }
