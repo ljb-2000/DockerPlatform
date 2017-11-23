@@ -1,4 +1,4 @@
-<section id="main-content">
+<!-- <section id="main-content">
     <section class="wrapper">
         <div class="row mt">
             <div class="col-md-4 mt">
@@ -10,13 +10,43 @@
             <div class="col-lg-4 mt">
                 <div id="buildmsg" style="width: 500px;height:300px;"></div>
             </div>
-            <!--             <div class="col-lg-3 mt">
-                <div id="test" style="width: 400px;height:300px;"></div>
-            </div> -->
+        </div>
+    </section>
+</section> -->
+
+<section id="main-content">
+    <section class="wrapper site-min-height">
+        <div id="morris">
+            <div class="row mt">
+                <div class="col-lg-4">
+                    <div class="content-panel">
+                        <div class="panel-body">
+                            <div id="kubernatesmsg" style="width: 100%;height:300px;">{{str2html .nothavenamespace}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="content-panel">
+                        <div class="panel-body">
+                            <div id="podsmsg" style="width: 100%;height:300px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="content-panel">
+                        <div class="panel-body">
+                            <div id="buildmsg" style="width: 100%;height:300px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 </section>
+
 <script src="static/js/jquery.js"></script>
+<script src="static/js/jquery.ba-resize.min.js"></script>
+<script src="static/js/echarts.min.js"></script>
 <script src="static/js/bootstrap.min.js"></script>
 <script class="include" type="text/javascript" src="static/js/jquery.dcjqaccordion.2.7.js"></script>
 <script src="static/js/jquery.scrollTo.min.js"></script>
@@ -205,100 +235,25 @@ function podsmsg(dataobj) {
     myChart.setOption(option);
 }
 
-var myChart = echarts.init(document.getElementById('test'));
-var option = {
-    tooltip: {
-        trigger: 'axis',
-        axisPointer: { // 坐标轴指示器，坐标轴触发有效
-            type: 'shadow' // 默认为直线，可选为：'line' | 'shadow'
-        }
-    },
-    legend: {
-        data: ['直接访问', '邮件营销', '联盟广告', '视频广告', '搜索引擎', '百度', '谷歌', '必应', '其他']
-    },
-    grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '3%',
-        containLabel: true
-    },
-    xAxis: [{
-        type: 'category',
-        data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
-    }],
-    yAxis: [{
-        type: 'value'
-    }],
-    series: [{
-            name: '直接访问',
-            type: 'bar',
-            data: [320, 332, 301, 334, 390, 330, 320]
-        },
-        {
-            name: '邮件营销',
-            type: 'bar',
-            stack: '广告',
-            data: [120, 132, 101, 134, 90, 230, 210]
-        },
-        {
-            name: '联盟广告',
-            type: 'bar',
-            stack: '广告',
-            data: [220, 182, 191, 234, 290, 330, 310]
-        },
-        {
-            name: '视频广告',
-            type: 'bar',
-            stack: '广告',
-            data: [150, 232, 201, 154, 190, 330, 410]
-        },
-        {
-            name: '搜索引擎',
-            type: 'bar',
-            data: [862, 1018, 964, 1026, 1679, 1600, 1570],
-            markLine: {
-                lineStyle: {
-                    normal: {
-                        type: 'dashed'
-                    }
-                },
-                data: [
-                    [{ type: 'min' }, { type: 'max' }]
-                ]
-            }
-        },
-        {
-            name: '百度',
-            type: 'bar',
-            barWidth: 5,
-            stack: '搜索引擎',
-            data: [620, 732, 701, 734, 1090, 1130, 1120]
-        },
-        {
-            name: '谷歌',
-            type: 'bar',
-            stack: '搜索引擎',
-            data: [120, 132, 101, 134, 290, 230, 220]
-        },
-        {
-            name: '必应',
-            type: 'bar',
-            stack: '搜索引擎',
-            data: [60, 72, 71, 74, 190, 130, 110]
-        },
-        {
-            name: '其他',
-            type: 'bar',
-            stack: '搜索引擎',
-            data: [62, 82, 91, 84, 109, 110, 120]
-        }
-    ]
-};
-myChart.setOption(option);
+// $(function () {
+//     $("#buildmsg").style.width = $("#buildmsg").width();
+//     $("#buildmsg").css('width', $("#buildmsg").width());
+//     $("#podsmsg").css('width', $("#podsmsg").width());
+//     $("#kubernatesmsg").css('width', $("#kubernatesmsg").width());
+// })
+// $(function (){
+//     var myChart1 = document.getElementById('buildmsg');
+//     $('#buildmsg').resize(function () {
+//         myChart1.resize();
+//     });
+//     var myChart2 = echarts.init(document.getElementById('kubernatesmsg'));
+//     $('#kubernatesmsg').resize(function () {
+//         myChart2.resize();
+//     });
+//     var myChart3 = echarts.init(document.getElementById('podsmsg'));
+//     $('#podsmsg').resize(function () {
+//         myChart3.resize();
+//     });
+// })
 
-window.onresize = function(){
-    echarts.init(document.getElementById('buildmsg')).resize();
-    echarts.init(document.getElementById('kubernatesmsg')).resize();
-    echarts.init(document.getElementById('podsmsg')).resize();
-}
 </script>
