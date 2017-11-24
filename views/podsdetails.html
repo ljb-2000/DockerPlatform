@@ -1,60 +1,98 @@
 <section id="main-content">
     <section class="wrapper">
-        <div class="row mt">
+        <div class="row">
             <div class="col-md-12">
                 <div class="form-panel">
-                    <h4><i class="fa fa-angle-right"></i>Pods Details</h4>
+                    <h4><i class="fa fa-angle-right"></i> <a href="pods.html"> Pods List</a><i class="fa fa-angle-right"></i>Pods Details
+                    <div class="box-tools pull-right">
+                        <button class="btn btn-success btn-sm restart">重启</button>
+                        <button class="btn btn-info btn-sm logs">日志</button>
+                    </div>
+                    </h4>
                     <hr>
                     <form class="form-horizontal">
-                        <div class="form-group">
+                        <div class="form-group form-group-sm">
                             <label class="col-sm-2 control-label">Name</label>
                             <div class="col-sm-10">
-                                <p class="form-control-static">{{.pod.Name}}</p>
+                                <!-- <p class="form-control-static">{{.pod.Name}}</p> -->
+                                {{.pod.Name}}
                             </div>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group form-group-sm">
+                            <label class="col-sm-2 control-label">NameSpaces</label>
+                            <div class="col-sm-10">
+                                <!-- <p class="form-control-static">{{.pod.Namespace}}</p> -->
+                                {{.pod.Namespace}}
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
                             <label for="inputPassword" class="col-sm-2 control-label">CreationTimestamp</label>
                             <div class="col-sm-10">
-                                <p class="form-control-static">{{.pod.CreationTimestamp}}</p>
+                                <!-- <p class="form-control-static">{{.pod.CreationTimestamp}}</p> -->
+                                {{.pod.CreationTimestamp}}
                             </div>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group form-group-sm">
                             <label class="col-sm-2 control-label">HostIP</label>
                             <div class="col-sm-10">
-                                <p class="form-control-static">{{.pod.HostIP}}</p>
+                                <!-- <p class="form-control-static">{{.pod.HostIP}}</p> -->
+                                {{.pod.HostIP}}
                             </div>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group form-group-sm">
                             <label for="inputPassword" class="col-sm-2 control-label">PodIP</label>
                             <div class="col-sm-10">
-                                <p class="form-control-static">{{.pod.PodIP}}</p>
+                                <!-- <p class="form-control-static">{{.pod.PodIP}}</p> -->
+                                {{.pod.PodIP}}
                             </div>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group form-group-sm">
                             <label class="col-sm-2 control-label">Image</label>
                             <div class="col-sm-10">
-                                <p class="form-control-static">{{.pod.Image}}</p>
+                                <!-- <p class="form-control-static">{{.pod.Image}}</p> -->
+                                {{.pod.Image}}
                             </div>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group form-group-sm">
                             <label for="inputPassword" class="col-sm-2 control-label">Domain</label>
                             <div class="col-sm-10">
                                 <p class="form-control-static">{{.pod.Domain}}</p>
                             </div>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group form-group-sm">
                             <label class="col-sm-2 control-label">ClusterIP</label>
                             <div class="col-sm-10">
-                                <p class="form-control-static">{{.pod.ClusterIP}}</p>
+                                <!-- <p class="form-control-static">{{.pod.ClusterIP}}</p> -->
+                                {{.pod.ClusterIP}}
                             </div>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group form-group-sm">
                             <label for="inputPassword" class="col-sm-2 control-label">Ports/Protocol</label>
                             <div class="col-sm-10">
-                                <p class="form-control-static">{{range .pod.Ports}} {{.Port}}{{if .NodePort}}:{{.NodePort}}{{end}}/{{.Protocol}} {{end}}</p>
+<!--                                 <p class="form-control-static">{{range .pod.Ports}} {{.Port}}{{if .NodePort}}:{{.NodePort}}{{end}}/{{.Protocol}} {{end}}</p> -->
+                                {{range .pod.Ports}} {{.Port}}{{if .NodePort}}:{{.NodePort}}{{end}}/{{.Protocol}} {{end}}
                             </div>
                         </div>
                     </form>
+                </div>
+            </div>
+            <div id="resp" class="col-md-12" style="display: none;">
+                <div class="form-panel">
+                    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                        <div class="panel panel-default" id="one" style="display: none;">
+                            <div class="panel-heading" role="tab" id="headingOne">
+                                <h4 class="panel-title">
+                                  <a role="button" data-toggle="collapse" data-parent="#accordion" href="   #collapseOne"      aria-expanded="true"               aria-controls="  collapseOne" id="collapseheadone"     style="color: green">
+                                    日志
+                                  </a>
+                                </h4>
+                            </div>
+                            <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel"    aria-labelledby="headingOne">
+                                <div class="panel-body" id="cloneresp" style="height: 100%; background: #333;   color: #aaa;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -72,4 +110,39 @@
 document.getElementById("kubernetes").setAttribute("class", "active dcjq-parent")
 document.getElementById("kubernetes-sub").setAttribute("style", "display: block")
 document.getElementById("pod").setAttribute("class", "active")
+$('.logs').click(function() {
+    $.ajax({
+        url: 'api/pods/logs',
+        type: 'post',
+        dataType: 'json',
+        data: {
+            'name': {{.pod.Name}},
+            'namespace': {{.pod.Namespace}},
+        },
+        success: function(data) {
+            if (data['status'] == '200') {
+                var resp = document.getElementById("resp")
+                resp.style.display = 'block'
+                var msg = data['msg']
+                msg = msg.replace(/\n/g, "<br/>");
+                var div1 = document.getElementById("one");
+                $("#cloneresp").html(msg)
+                div1.style.display = 'block'
+            } else if (data['status'] == '300') {
+                var resp = document.getElementById("resp")
+                resp.style.display = 'block'
+                var msg = data['err']
+                msg = msg.replace(/\n/g, "<br/>");
+                var div1 = document.getElementById("one");
+                $("#cloneresp").html(msg)
+                div1.style.display = 'block'
+                document.getElementById("collapseheadone").style.color = 'red';
+            }
+        },
+        error: function() {
+            alert('failed!');
+        }
+    });
+
+});
 </script>

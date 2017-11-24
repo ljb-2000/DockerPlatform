@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	// "github.com/astaxie/beego"
+	"fmt"
 	v1 "k8s.io/client-go/pkg/api/v1"
 	// v1beta1 "k8s.io/client-go/pkg/apis/apps/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,6 +16,7 @@ type PodsController struct {
 
 type Pod struct {
 	Name              string
+	Namespace         string
 	CreationTimestamp metav1.Time
 	HostIP            string
 	PodIP             string
@@ -22,6 +24,18 @@ type Pod struct {
 	Domain            string
 	ClusterIP         string
 	Ports             []v1.ServicePort
+}
+
+func (this *PodsController) GetPodsLogs() {
+	name := this.GetString("name")
+	namespace := this.GetString("namespace")
+
+	cmd := "/root/local/bin/kubectl logs --tail 1000"
+	cmd = fmt.Sprintf("%s %s %s %s", cmd, name, "-n", namespace)
+
+	msg := RemoteCommand(cmd)
+	this.Data["json"] = map[string]string{"status": "200", "msg": msg}
+	this.ServeJSON()
 }
 
 func (this *PodsController) Details() {
@@ -41,6 +55,7 @@ func (this *PodsController) Details() {
 	for _, podvalue := range podmsg {
 		if podname == podvalue.ObjectMeta.Labels["app"] {
 			pod.Name = podvalue.ObjectMeta.Name
+			pod.Namespace = podvalue.ObjectMeta.Namespace
 			pod.CreationTimestamp = podvalue.ObjectMeta.CreationTimestamp
 			pod.HostIP = podvalue.Status.HostIP
 			pod.PodIP = podvalue.Status.PodIP

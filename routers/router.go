@@ -46,6 +46,8 @@ func init() {
 
 	beego.Router("/api/deploy", &controllers.DeployController{})
 
+	beego.Router("/api/pods/logs", &controllers.PodsController{}, "post:GetPodsLogs")
+
 	beego.Router("/api/pipelinetoclone", &controllers.BuildController{}, "post:PipelineToClone")
 	beego.Router("/api/pipelinetobuild", &controllers.BuildController{}, "post:PipelineToBuild")
 	beego.Router("/api/pipelinetopush", &controllers.BuildController{}, "post:PipelineToPush")

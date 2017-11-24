@@ -8,11 +8,45 @@ import (
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
+	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
 )
+
+func RemoteCommand(cmd string) (msg string) {
+	user := "root"
+	pass := "5sjws!JS51l"
+	host := "10.10.35.1"
+	port := 6123
+
+	config := &ssh.ClientConfig{
+		User: user,
+		Auth: []ssh.AuthMethod{
+			ssh.Password(pass),
+		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	}
+	addr := fmt.Sprintf("%s:%d", host, port)
+	client, err := ssh.Dial("tcp", addr, config)
+	if err != nil {
+		panic("Failed to dial: " + err.Error())
+	}
+
+	session, err := client.NewSession()
+	if err != nil {
+		panic("Failed to create session: " + err.Error())
+	}
+	defer session.Close()
+
+	var resp bytes.Buffer
+	session.Stdout = &resp
+	if err := session.Run(cmd); err != nil {
+		panic("Failed to run: " + err.Error())
+	}
+	return resp.String()
+}
 
 func stringInSlice(a string, list []string) bool {
 	for _, b := range list {
