@@ -20,6 +20,7 @@ func init() {
 	beego.InsertFilter("/namespaces.html", beego.BeforeRouter, FilterUser)
 	beego.InsertFilter("/service.html", beego.BeforeRouter, FilterUser)
 	beego.InsertFilter("/pods.html", beego.BeforeRouter, FilterUser)
+	beego.InsertFilter("/podsdetails.html", beego.BeforeRouter, FilterUser)
 	beego.InsertFilter("/repos.html", beego.BeforeRouter, FilterUser)
 	beego.InsertFilter("/tags.html", beego.BeforeRouter, FilterUser)
 	beego.InsertFilter("/bitbucket.html", beego.BeforeRouter, FilterUser)

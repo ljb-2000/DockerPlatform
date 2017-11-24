@@ -10,7 +10,8 @@
                             <tr>
                                 <th>Name</th>
                                 <th>Namespaces</th>
-                                <th>Create Time</th>
+                                <!-- <th>Labels</th> -->
+                                <!-- <th>Create Time</th> -->
                                 <th>HostIP</th>
                                 <th>PodIP</th>
                                 <th>Images</th>
@@ -21,9 +22,10 @@
                         <tbody>
                             {{range .podslist}}
                             <tr>
-                                <td>{{.ObjectMeta.Name}}</td>
-                                <td class="hidden-phone">{{.ObjectMeta.Namespace}}</td>
-                                <td>{{.ObjectMeta.CreationTimestamp}}</td>
+                                <td><a href="/podsdetails.html?name={{.ObjectMeta.Labels.app}}">{{.ObjectMeta.Name}}</a></td>
+                                <td>{{.ObjectMeta.Namespace}}</td>
+                                <!-- <td>{{.ObjectMeta.Labels.app}}</td> -->
+                                <!-- <td>{{.ObjectMeta.CreationTimestamp}}</td> -->
                                 <td>{{.Status.HostIP}}</td>
                                 <td>{{.Status.PodIP}}</td>
                                 <td>

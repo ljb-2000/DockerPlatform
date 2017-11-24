@@ -1,0 +1,75 @@
+<section id="main-content">
+    <section class="wrapper">
+        <div class="row mt">
+            <div class="col-md-12">
+                <div class="form-panel">
+                    <h4><i class="fa fa-angle-right"></i>Pods Details</h4>
+                    <hr>
+                    <form class="form-horizontal">
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Name</label>
+                            <div class="col-sm-10">
+                                <p class="form-control-static">{{.pod.Name}}</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="inputPassword" class="col-sm-2 control-label">CreationTimestamp</label>
+                            <div class="col-sm-10">
+                                <p class="form-control-static">{{.pod.CreationTimestamp}}</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">HostIP</label>
+                            <div class="col-sm-10">
+                                <p class="form-control-static">{{.pod.HostIP}}</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="inputPassword" class="col-sm-2 control-label">PodIP</label>
+                            <div class="col-sm-10">
+                                <p class="form-control-static">{{.pod.PodIP}}</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Image</label>
+                            <div class="col-sm-10">
+                                <p class="form-control-static">{{.pod.Image}}</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="inputPassword" class="col-sm-2 control-label">Domain</label>
+                            <div class="col-sm-10">
+                                <p class="form-control-static">{{.pod.Domain}}</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">ClusterIP</label>
+                            <div class="col-sm-10">
+                                <p class="form-control-static">{{.pod.ClusterIP}}</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="inputPassword" class="col-sm-2 control-label">Ports/Protocol</label>
+                            <div class="col-sm-10">
+                                <p class="form-control-static">{{range .pod.Ports}} {{.Port}}{{if .NodePort}}:{{.NodePort}}{{end}}/{{.Protocol}} {{end}}</p>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</section>
+<script src="static/js/jquery-1.8.3.min.js"></script>
+<script src="static/js/bootstrap.min.js"></script>
+<script class="include" type="text/javascript" src="static/js/jquery.dcjqaccordion.2.7.js"></script>
+<script src="static/js/jquery.scrollTo.min.js"></script>
+<script src="static/js/jquery.nicescroll.js" type="text/javascript"></script>
+<script src="static/js/common-scripts.js"></script>
+<script type="text/javascript" src="static/js/gritter/js/jquery.gritter.js"></script>
+<script type="text/javascript" src="static/js/gritter-conf.js"></script>
+<script>
+document.getElementById("kubernetes").setAttribute("class", "active dcjq-parent")
+document.getElementById("kubernetes-sub").setAttribute("style", "display: block")
+document.getElementById("pod").setAttribute("class", "active")
+</script>

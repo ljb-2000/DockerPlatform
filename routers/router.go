@@ -15,6 +15,7 @@ func init() {
 	beego.Router("/deployment.html", &controllers.DeploymentController{})
 	beego.Router("/service.html", &controllers.ServiceController{})
 	beego.Router("/pods.html", &controllers.PodsController{})
+	beego.Router("/podsdetails.html", &controllers.PodsController{}, "get:Details")
 	beego.Router("/ingress.html", &controllers.IngressController{})
 
 	//  harbor
