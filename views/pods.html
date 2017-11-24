@@ -9,7 +9,7 @@
                         <thead>
                             <tr>
                                 <th>Name</th>
-                                <th>Namespaces</th>
+                                <!-- <th>Namespaces</th> -->
                                 <!-- <th>Labels</th> -->
                                 <!-- <th>Create Time</th> -->
                                 <th>HostIP</th>
@@ -23,7 +23,7 @@
                             {{range .podslist}}
                             <tr>
                                 <td><a href="/podsdetails.html?name={{.ObjectMeta.Labels.app}}">{{.ObjectMeta.Name}}</a></td>
-                                <td>{{.ObjectMeta.Namespace}}</td>
+                                <!-- <td>{{.ObjectMeta.Namespace}}</td> -->
                                 <!-- <td>{{.ObjectMeta.Labels.app}}</td> -->
                                 <!-- <td>{{.ObjectMeta.CreationTimestamp}}</td> -->
                                 <td>{{.Status.HostIP}}</td>
