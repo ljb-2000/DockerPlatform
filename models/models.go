@@ -15,6 +15,7 @@ type User struct {
 
 type Bitbucket struct {
 	Id       int
+	Project  string
 	RepoName string
 	Url      string
 	User     *User     `orm:"rel(fk)"`

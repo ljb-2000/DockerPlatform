@@ -111,8 +111,10 @@ func (this *BuildController) BuildConfigForPost() {
 
 }
 
+//加入构建列表
 func (this *BuildController) Post() {
 	username := this.GetSession("username").(string)
+	projectname := this.GetString("projectname")
 	name := this.GetString("name")
 	url := this.GetString("url")
 	url = strings.Replace(url, " ", "", -1)
@@ -122,13 +124,19 @@ func (this *BuildController) Post() {
 	user := models.User{Name: username}
 	_ = o.Read(&user, "Name")
 
-	bitbucket := models.Bitbucket{RepoName: strings.ToLower(name), Url: url, User: &user}
+	bitbucket := models.Bitbucket{
+		Project:  projectname,
+		RepoName: strings.ToLower(name),
+		Url:      url,
+		User:     &user}
+
 	o.Insert(&bitbucket)
 
 	this.Data["json"] = map[string]string{"status": "200"}
 	this.ServeJSON()
 }
 
+//从构建列表删除
 func (this *BuildController) RepoDelete() {
 	repoid := this.GetString("repoid")
 
@@ -143,6 +151,7 @@ func (this *BuildController) RepoDelete() {
 	this.ServeJSON()
 }
 
+// 显示构建列表内容
 func (this *BuildController) List() {
 	username := this.GetString("username")
 
@@ -180,6 +189,37 @@ func (this *BuildController) Get() {
 	repos := models.Bitbucket{Id: bitid}
 	o.Read(&repos)
 
+	// 获取代码分支信息
+	// http://bitbucket.gqihome.com/rest/api/1.0/projects/CASH/repos/cashloan-fe/branches
+	// Response:
+	// {
+	//     "size": 20,
+	//     "limit": 25,
+	//     "isLastPage": true,
+	//     "values": [
+	//         {
+	//             "id": "refs/heads/bugfix/hotfix-0802",
+	//             "displayId": "bugfix/hotfix-0802",
+	//             "type": "BRANCH",
+	//             "latestCommit": "4252ca188434678dbef2979d63a1d7ee37b4a29d",
+	//             "latestChangeset": "4252ca188434678dbef2979d63a1d7ee37b4a29d",
+	//             "isDefault": false
+	//         },
+	//         ...
+	//     ],
+	//     "start": 0
+	// }
+	bitbucketapiurl := beego.AppConfig.String("bitbucketapiurl")
+	bitbucketuser := this.GetSession("username").(string)
+	bitbucketpass := GetPasswd(bitbucketuser)
+
+	projectname := repos.Project
+	reponame := repos.RepoName
+	url := bitbucketapiurl + "/" + filepath.Join("projects", projectname, "repos", reponame, "branches")
+	result, _ := RequestForAuth("GET", url, bitbucketuser, bitbucketpass, nil)
+	var branches interface{}
+	json.Unmarshal(result, &branches)
+
 	// 判断pipeline 表是否有该id的数据
 	// @warning: true build.html页面显示警告信息
 	// @warning: false 不显示
@@ -193,8 +233,8 @@ func (this *BuildController) Get() {
 	}
 
 	// 获取构建日志名，并追加到临时列表
-	projectname := repos.RepoName
-	builddir := filepath.Join(datadir, "pipelogs", username, projectname)
+	// reponame := repos.RepoName
+	builddir := filepath.Join(datadir, "pipelogs", username, reponame)
 	logfile, _ := ioutil.ReadDir(builddir)
 	var logfilelist []string
 	for _, v := range logfile {
@@ -213,6 +253,7 @@ func (this *BuildController) Get() {
 
 	this.Data["id"] = repos.Id
 	this.Data["repos"] = repos
+	this.Data["branches"] = branches
 	this.Data["logfilelist"] = logfilelist
 	this.Data["warning"] = warning
 	this.Layout = "layout.html"
@@ -310,6 +351,8 @@ func (this *BuildController) PipelineToClone() {
 func (this *BuildController) PipelineToBuild() {
 	datadir := beego.AppConfig.String("datadir")
 	giturl := this.GetString("giturl")
+	branches := this.GetString("branches")
+	branches = strings.TrimSpace(branches)
 	logfile := this.GetString("logfile")
 	id := this.GetString("id")
 	username := this.GetSession("username").(string)
@@ -324,7 +367,8 @@ func (this *BuildController) PipelineToBuild() {
 	f, _ := ioutil.ReadFile(logfile)
 	json.Unmarshal(f, &msg)
 
-	// 构建代码
+	// 切换分支 & 构建代码
+	ckeckoutcmd := "git checkout " + branches
 	clonedir := filepath.Join(datadir, "gitcode", username, projectname)
 	os.Chdir(clonedir)
 	idtoint, _ := strconv.Atoi(id)
@@ -334,13 +378,14 @@ func (this *BuildController) PipelineToBuild() {
 	buildcmd := pipeline.BuildMsg
 	buildcmd = strings.TrimSpace(buildcmd)
 	buildcmd = strings.Replace(buildcmd, "\n", "&&", -1)
+	cmd := ckeckoutcmd + "&&" + "git pull" + "&&" + buildcmd
 
-	if strings.Contains(buildcmd, "rm") {
+	if strings.Contains(cmd, "rm") {
 		this.Data["json"] = map[string]string{"status": "300", "err": string("请勿输入危险命令: " + buildcmd)}
 		this.ServeJSON()
 	}
 
-	err, out, _ := Shellout(buildcmd)
+	err, out, _ := Shellout(cmd)
 
 	//返回json信息
 	if err != nil {
@@ -423,6 +468,14 @@ func (this *BuildController) PipelineToPush() {
 
 	// 进入代码目录，根据dockerfile进行打包
 	os.Chdir(clonedir)
+
+	//如果doackerfile不存在，返回错误信息
+	dokerfile := filepath.Join(clonedir, "Dockerfile")
+	if _, err := os.Stat(dokerfile); err != nil {
+		this.Data["json"] = map[string]string{"status": "300", "err": string(err.Error())}
+		this.ServeJSON()
+	}
+
 	// 打包并上传harbor仓库
 	image := "harbor.gqichina.com/" + harborpro + "/" + name + ":" + version + "-" + time.Now().Format("20060102-150405")
 	imagelatst := "harbor.gqichina.com/" + harborpro + "/" + name + ":latest\n"

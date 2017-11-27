@@ -10,6 +10,7 @@
                             <tr>
                                 <th> 代码仓库名称</th>
                                 <th> 代码仓库地址</th>
+                                <th> 分支</th>
                                 <th> 操作</th>
                             </tr>
                         </thead>
@@ -18,6 +19,13 @@
                                 <td class="repoid" hidden="true">{{.repos.Id}}</td>
                                 <td class="hidden-phone">{{.repos.RepoName}}</td>
                                 <td class="hidden-phone giturl">{{.repos.Url}}</td>
+                                <td>
+                                    <select class="selector">
+                                    {{range .branches.values}}
+                                      <option>{{.displayId}}</option>
+                                    {{end}}
+                                    </select>
+                                </td>
                                 <td>
                                     <button class="btn btn-success btn-xs build">构建</button>
                                     <a class="btn btn-primary btn-xs" href="buildconfig.html?id={{.repos.Id}}">配置</a>
@@ -232,6 +240,7 @@ $('.build').click(function() {
 })
 
 function pipelinetobuild(giturl, logfile) {
+    var branches = $(".selector").val();
     $.ajax({
         url: 'api/pipelinetobuild',
         type: 'post',
@@ -240,6 +249,7 @@ function pipelinetobuild(giturl, logfile) {
             'giturl': giturl,
             'logfile': logfile,
             'id': {{.repos.Id}},
+            'branches': branches,
         },
         success: function(data) {
             if (data['status'] == '200') {

@@ -44,6 +44,7 @@ func (this *BitbucketController) BitbucketRepos() {
 	json.Unmarshal(result, &bitbucketrepos)
 
 	this.Data["bitbucketrepos"] = bitbucketrepos
+	this.Data["projectname"] = project
 	this.Layout = "layout.html"
 	this.TplName = "bitbucketrepos.html"
 	this.LayoutSections = make(map[string]string)

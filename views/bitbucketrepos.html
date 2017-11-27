@@ -57,6 +57,7 @@ $('.build').click(function() {
         type: 'post',
         dataType: 'json',
         data: {
+            'projectname': {{.projectname}},
             'name': name,
             'url': url,
         },
