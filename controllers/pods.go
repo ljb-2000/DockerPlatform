@@ -39,7 +39,7 @@ func (this *PodsController) GetPodsLogs() {
 }
 
 func (this *PodsController) Details() {
-	podname := this.GetString("name")
+	appname := this.GetString("name")
 	username := this.GetSession("username").(string)
 
 	namespaces := ""
@@ -53,7 +53,7 @@ func (this *PodsController) Details() {
 
 	podmsg := PodMsg(namespaces)
 	for _, podvalue := range podmsg {
-		if podname == podvalue.ObjectMeta.Labels["app"] {
+		if appname == podvalue.ObjectMeta.Labels["app"] {
 			pod.Name = podvalue.ObjectMeta.Name
 			pod.Namespace = podvalue.ObjectMeta.Namespace
 			pod.CreationTimestamp = podvalue.ObjectMeta.CreationTimestamp
@@ -65,14 +65,14 @@ func (this *PodsController) Details() {
 
 	ingmsg := IngressMsg(namespaces)
 	for _, ingvalue := range ingmsg {
-		if podname == ingvalue.ObjectMeta.Name {
+		if appname == ingvalue.ObjectMeta.Name {
 			pod.Domain = ingvalue.Spec.Rules[0].Host
 		}
 	}
 
 	servicemsg := ServiceMsg(namespaces)
 	for _, svcvalue := range servicemsg {
-		if podname == svcvalue.ObjectMeta.Name {
+		if appname == svcvalue.ObjectMeta.Name {
 			pod.ClusterIP = svcvalue.Spec.ClusterIP
 			pod.Ports = svcvalue.Spec.Ports
 		}
@@ -89,6 +89,7 @@ func (this *PodsController) Details() {
 	// var deploymentlist []v1beta1.Deployment
 	// json.Unmarshal(jsonStr2, &deploymentlist)
 
+	this.Data["appname"] = appname
 	this.Data["pod"] = pod
 	this.Layout = "layout.html"
 	this.TplName = "podsdetails.html"
