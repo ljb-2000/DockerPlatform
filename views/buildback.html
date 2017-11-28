@@ -10,6 +10,7 @@
                             <tr>
                                 <th> 代码仓库名称</th>
                                 <th> 代码仓库地址</th>
+                                <th> 分支</th>
                                 <th> 操作</th>
                             </tr>
                         </thead>
@@ -19,9 +20,16 @@
                                 <td class="hidden-phone">{{.repos.RepoName}}</td>
                                 <td class="hidden-phone giturl">{{.repos.Url}}</td>
                                 <td>
+                                    <select class="selector">
+                                    {{range .branches.values}}
+                                      <option>{{.displayId}}</option>
+                                    {{end}}
+                                    </select>
+                                </td>
+                                <td>
                                     <button class="btn btn-success btn-xs build">构建</button>
+                                    <a class="btn btn-primary btn-xs" href="buildconfig.html?id={{.repos.Id}}">配置</a>
                                     <button class="btn btn-danger btn-xs deleterepo">删除</button>
-                                    <button class="btn btn-primary btn-xs">日志</button>
                                 </td>
                             </tr>
                         </tbody>
@@ -30,9 +38,33 @@
                 <!-- /content-panel -->
             </div>
             <!-- /col-md-12 -->
-            <div id="resp" class="col-md-8 mt" style="display: none;">
-                <h4> 构建日志</h4>
+            <div class="col-md-12 mt">
+                <div id="alert" class="alert alert-danger alert-dismissible" role="alert" style="display: none;">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <strong>Warning!</strong> 请先点击配置按钮，输入构建命令。
+                </div>
+            </div>
+            <div class="col-md-2">
                 <div class="content-panel">
+                    <h4><i class="fa fa-angle-right"></i> 历史日志</h4>
+                    <ul>
+                        {{range $index, $val := .logfilelist}}
+                        <li>
+                            <a href="build.html?id={{$.id}}&logfilename={{$val}}">{{$val}}</a>
+                        </li>
+                        {{end}}
+                    </ul>
+                </div>
+            </div>
+            <!-- /col-md-12 -->
+            <div id="resp" class="col-md-10" style="display: none;">
+                <div class="content-panel">
+                    <h4><i class="fa fa-angle-right"></i> Pipeline</h4>
+                    <hr>
+                    <div id="bar" class="progress" style="display: none;">
+                        <div id="progressbar" class="progress-bar progress-bar-success progress-bar-striped " role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 5%;"> 5%
+                        </div>
+                    </div>
                     <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
                         <div class="panel panel-default" id="one" style="display: none;">
                             <div class="panel-heading" role="tab" id="headingOne">
@@ -92,6 +124,59 @@
 <script>
 document.getElementById("buildlist").setAttribute("class", "active")
 
+$(function() {
+    var loglenght = {{(.log | len)}}
+    var log = {{.log}}
+    if (loglenght > 0) {
+        CloseDiv()
+        var resp = document.getElementById("resp")
+        resp.style.display = 'block'
+
+        if (log.clone) {
+            var clone = log.clone.replace(/\n/g, "<br/>");
+        }
+        if (log.build) {
+            var build = log.build.replace(/\n/g, "<br/>");
+        }
+        if (log.push) {
+            var push = log.push.replace(/\n/g, "<br/>");
+        }
+
+        var div1 = document.getElementById("one");
+        $("#cloneresp").html(clone)
+        div1.style.display = 'block'
+
+        var div2 = document.getElementById("two");
+        $("#buildresp").html(build)
+        div2.style.display = 'block'
+
+        var div3 = document.getElementById("three");
+        $("#pushresp").html(push)
+        div3.style.display = 'block'
+    }
+})
+
+$(function () {
+    var warning = {{.warning}}
+    if (warning) {
+        document.getElementById("alert").style.display="block"
+    }
+})
+
+function CloseDiv() {
+    var resp = document.getElementById("resp")
+    resp.style.display = 'none'
+    var div1 = document.getElementById("one");
+    $("#cloneresp").html("")
+    div1.style.display = 'none'
+    var div2 = document.getElementById("two");
+    $("#buildresp").html("")
+    div2.style.display = 'none'
+    var div3 = document.getElementById("three");
+    $("#pushresp").html("")
+    div3.style.display = 'none'
+}
+
 $('.deleterepo').click(function() {
     var repoid = $(this).parent("td").siblings(".repoid").text()
     $.ajax({
@@ -115,8 +200,9 @@ $('.deleterepo').click(function() {
 })
 
 $('.build').click(function() {
-    var resp = document.getElementById("resp")
-    resp.style.display = 'block'
+    CloseDiv()
+    document.getElementById("resp").style.display = 'block'
+    document.getElementById("bar").style.display = "block"
 
     var giturl = $(this).parent("td").siblings(".giturl").text()
     $.ajax({
@@ -133,7 +219,10 @@ $('.build').click(function() {
                 var div1 = document.getElementById("one");
                 $("#cloneresp").html(msg)
                 div1.style.display = 'block'
-                pipelinetobuild(giturl)
+                pipelinetobuild(giturl, data['logfile'])
+
+                document.getElementById("progressbar").style.width = "30%"
+                document.getElementById("progressbar").innerText = "30%"
             } else if (data['status'] == '300') {
                 var msg = data['err']
                 msg = msg.replace(/\n/g, "<br/>");
@@ -149,13 +238,17 @@ $('.build').click(function() {
     });
 })
 
-function pipelinetobuild(giturl) {
+function pipelinetobuild(giturl, logfile) {
+    var branches = $(".selector").val();
     $.ajax({
         url: 'api/pipelinetobuild',
         type: 'post',
         dataType: 'json',
         data: {
             'giturl': giturl,
+            'logfile': logfile,
+            'id': {{.repos.Id}},
+            'branches': branches,
         },
         success: function(data) {
             if (data['status'] == '200') {
@@ -164,7 +257,10 @@ function pipelinetobuild(giturl) {
                 var div2 = document.getElementById("two");
                 $("#buildresp").html(msg)
                 div2.style.display = 'block'
-                pipelinetopush(giturl)
+                pipelinetopush(giturl, data['logfile'])
+
+                document.getElementById("progressbar").style.width = "70%"
+                document.getElementById("progressbar").innerText = "70%"
             } else if (data['status'] == '300') {
                 var msg = data['err']
                 msg = msg.replace(/\n/g, "<br/>");
@@ -180,13 +276,15 @@ function pipelinetobuild(giturl) {
     });
 }
 
-function pipelinetopush(giturl) {
+function pipelinetopush(giturl, logfile) {
     $.ajax({
         url: 'api/pipelinetopush',
         type: 'post',
         dataType: 'json',
         data: {
             'giturl': giturl,
+            'logfile': logfile,
+            'id': {{.repos.Id}},
         },
         success: function(data) {
             if (data['status'] == '200') {
@@ -195,6 +293,9 @@ function pipelinetopush(giturl) {
                 var div3 = document.getElementById("three");
                 $("#pushresp").html(msg)
                 div3.style.display = 'block'
+
+                document.getElementById("progressbar").style.width = "100%"
+                document.getElementById("progressbar").innerText = "100%"
             } else if (data['status'] == '300') {
                 var msg = data['err']
                 msg = msg.replace(/\n/g, "<br/>");

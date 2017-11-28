@@ -24,6 +24,7 @@ func init() {
 	beego.Router("/tags.html", &controllers.TagsController{})
 
 	beego.Router("/bitbucket.html", &controllers.BitbucketController{})
+	beego.Router("/commits.html", &controllers.BitbucketController{}, "get:GetCommits")
 	beego.Router("/bitbucketrepos.html", &controllers.BitbucketController{}, "get:BitbucketRepos")
 
 	// jenkins controller
@@ -39,6 +40,7 @@ func init() {
 	beego.Router("/build.html", &controllers.BuildController{})
 	beego.Router("/buildconfig.html", &controllers.BuildController{}, "get:BuildConfigForGet")
 	beego.Router("/buildconfig.html", &controllers.BuildController{}, "post:BuildConfigForPost")
+
 	beego.Router("/api/build/add", &controllers.BuildController{})
 
 	// api/repo/delete

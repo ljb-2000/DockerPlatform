@@ -4,32 +4,23 @@
             <div class="col-md-12">
                 <div class="content-panel">
                     <table class="table table-condensed table-hover table-bordered">
-                        <h4><i class="fa fa-angle-right"></i> Services
-                      </h4>
+                        <h4> <i class="fa fa-angle-right"></i> Commits</h4>
                         <hr>
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Namespaces</th>
-                                <th>Create Time</th>
-                                <th>ClusterIP</th>
-                                <th>Containers</th>
-                                <th>Selector</th>
+                                <th>作者</th>
+                                <th>提交</th>
+                                <th>信息</th>
+                                <th>提交日期</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {{range .servicelist}}
+                            {{range .commits.values}}
                             <tr>
-                                <td>{{.ObjectMeta.Name}}</td>
-                                <td class="hidden-phone">{{.ObjectMeta.Namespace}}</td>
-                                <td>{{.ObjectMeta.CreationTimestamp}}</td>
-                                <td>{{.Spec.ClusterIP}}</td>
-                                <td>
-                                    {{range .Spec.Ports}} {{.Port}}{{if .NodePort}}:{{.NodePort}}{{end}}/{{.Protocol}} {{end}}
-                                </td>
-                                <td>
-                                    {{range $key, $val := .Spec.Selector}} {{$key}}:{{$val}} {{end}}
-                                </td>
+                                <td>{{.author.name}}</td>
+                                <td>{{.displayId}}</td>
+                                <td>{{.message}}</td>
+                                <td nowrap>{{.authorTimestamp | timestamptotime}}</td>
                             </tr>
                             {{end}}
                         </tbody>
@@ -53,7 +44,5 @@
 <script type="text/javascript" src="static/js/gritter/js/jquery.gritter.js"></script>
 <script type="text/javascript" src="static/js/gritter-conf.js"></script>
 <script>
-document.getElementById("kubernetes").setAttribute("class", "active dcjq-parent")
-document.getElementById("kubernetes-sub").setAttribute("style", "display: block")
-document.getElementById("service").setAttribute("class", "active")
+document.getElementById("buildlist").setAttribute("class", "active")
 </script>

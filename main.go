@@ -6,6 +6,7 @@ import (
 	_ "DockerPlatform/routers"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -18,6 +19,15 @@ func CheckGitUrl(in string) (out string) {
 		}
 	}
 	return ""
+}
+
+func TimestampToTime(in float64) (out string) {
+	timestring := strconv.FormatFloat(in, 'f', -1, 64)
+	timestring = timestring[:10]
+	timeint64, _ := strconv.ParseInt(timestring, 10, 64)
+	timeLayout := "2006-01-02"
+	dataTimeStr := time.Unix(timeint64, 0).Format(timeLayout)
+	return dataTimeStr
 }
 
 func timeParse(in string) (out string) {
@@ -49,6 +59,7 @@ func main() {
 	beego.SetStaticPath("/static", "static")
 	beego.AddFuncMap("checkgiturl", CheckGitUrl)
 	beego.AddFuncMap("timeparse", timeParse)
+	beego.AddFuncMap("timestamptotime", TimestampToTime)
 	beego.Run()
 
 }
