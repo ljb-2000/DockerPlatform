@@ -11,6 +11,7 @@ type DeployController struct {
 }
 
 func (this *DeployController) Post() {
+	username := this.GetSession("username").(string)
 	repos := this.GetString("repos")
 	tags := this.GetString("tags")
 	harborhost := beego.AppConfig.String("harborhost")
@@ -22,7 +23,7 @@ func (this *DeployController) Post() {
 
 	jsonmap := make(map[string]string)
 	jsonmap["name"] = name
-	jsonmap["namespaces"] = "tanzhixu"
+	jsonmap["namespaces"] = username
 	jsonmap["image"] = image
 	jsonmap["replicas"] = "1"
 	jsonStr, _ := json.Marshal(jsonmap)
