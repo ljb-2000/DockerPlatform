@@ -26,6 +26,23 @@ type Pod struct {
 	Ports             []v1.ServicePort
 }
 
+func (this *PodsController) GetPodsDescribe() {
+	name := this.GetString("name")
+	namespace := this.GetString("namespace")
+
+	cmd := "/root/local/bin/kubectl describe pod"
+	cmd = fmt.Sprintf("%s %s %s %s", cmd, name, "-n", namespace)
+
+	status, msg := RemoteCommand(cmd)
+	if status {
+		this.Data["json"] = map[string]string{"status": "200", "msg": msg}
+	} else {
+		this.Data["json"] = map[string]string{"status": "300", "err": msg}
+	}
+
+	this.ServeJSON()
+}
+
 func (this *PodsController) GetPodsLogs() {
 	name := this.GetString("name")
 	namespace := this.GetString("namespace")
@@ -33,8 +50,13 @@ func (this *PodsController) GetPodsLogs() {
 	cmd := "/root/local/bin/kubectl logs --tail 1000"
 	cmd = fmt.Sprintf("%s %s %s %s", cmd, name, "-n", namespace)
 
-	msg := RemoteCommand(cmd)
-	this.Data["json"] = map[string]string{"status": "200", "msg": msg}
+	status, msg := RemoteCommand(cmd)
+	if status {
+		this.Data["json"] = map[string]string{"status": "200", "msg": msg}
+	} else {
+		this.Data["json"] = map[string]string{"status": "300", "err": msg}
+	}
+
 	this.ServeJSON()
 }
 

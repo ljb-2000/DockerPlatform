@@ -7,6 +7,7 @@
                     <div class="box-tools pull-right">
                         <button class="btn btn-success btn-sm restart">重启</button>
                         <button class="btn btn-info btn-sm logs">日志</button>
+                        <button class="btn btn-danger btn-sm errorlogs">Describe</button>
                     </div>
                     </h4>
                     <hr>
@@ -120,6 +121,41 @@ document.getElementById("pod").setAttribute("class", "active")
 $('.logs').click(function() {
     $.ajax({
         url: 'api/pods/logs',
+        type: 'post',
+        dataType: 'json',
+        data: {
+            'name': {{.pod.Name}},
+            'namespace': {{.pod.Namespace}},
+        },
+        success: function(data) {
+            if (data['status'] == '200') {
+                var resp = document.getElementById("resp")
+                resp.style.display = 'block'
+                var msg = data['msg']
+                msg = msg.replace(/\n/g, "<br/>");
+                var div1 = document.getElementById("one");
+                $("#cloneresp").html(msg)
+                div1.style.display = 'block'
+            } else if (data['status'] == '300') {
+                var resp = document.getElementById("resp")
+                resp.style.display = 'block'
+                var msg = data['err']
+                msg = msg.replace(/\n/g, "<br/>");
+                var div1 = document.getElementById("one");
+                $("#cloneresp").html(msg)
+                div1.style.display = 'block'
+                document.getElementById("collapseheadone").style.color = 'red';
+            }
+        },
+        error: function() {
+            alert('failed!');
+        }
+    });
+
+});
+$('.errorlogs').click(function() {
+    $.ajax({
+        url: 'api/pods/describe',
         type: 'post',
         dataType: 'json',
         data: {

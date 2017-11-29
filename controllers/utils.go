@@ -15,7 +15,7 @@ import (
 	"os/exec"
 )
 
-func RemoteCommand(cmd string) (msg string) {
+func RemoteCommand(cmd string) (status bool, msg string) {
 	user := "root"
 	pass := "5sjws!JS51l"
 	host := "10.10.35.1"
@@ -40,12 +40,15 @@ func RemoteCommand(cmd string) (msg string) {
 	}
 	defer session.Close()
 
-	var resp bytes.Buffer
-	session.Stdout = &resp
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+
+	session.Stdout = &stdout
+	session.Stderr = &stderr
 	if err := session.Run(cmd); err != nil {
-		panic("Failed to run: " + err.Error())
+		return false, stderr.String()
 	}
-	return resp.String()
+	return true, stdout.String()
 }
 
 func stringInSlice(a string, list []string) bool {
