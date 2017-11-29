@@ -482,7 +482,8 @@ func (this *BuildController) PipelineToPush() {
 	cmdtobuild := "docker build -t " + image + " --build-arg APP_VERSION=" + version + " ./\n"
 	cmdtotag := "docker tag " + image + " " + imagelatst
 	cmdtopushimage := "docker push " + image + "\n"
-	cmdtopushimagelatst := "docker push " + imagelatst
+	cmdtopushimagelatst := "docker push " + imagelatst + "\n"
+	cmdrmi := "docker rmi " + image + "&&" + "docker rmi " + imagelatst
 
 	// pomfile := clonedir + "/pom.xml"
 	// os.Chdir(clonedir)
@@ -517,6 +518,7 @@ func (this *BuildController) PipelineToPush() {
 		in.WriteString(cmdtotag)
 		in.WriteString(cmdtopushimage)
 		in.WriteString(cmdtopushimagelatst)
+		in.WriteString(cmdrmi)
 	}()
 	cmd.Run()
 
