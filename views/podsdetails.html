@@ -5,7 +5,7 @@
                 <div class="form-panel">
                     <h4><i class="fa fa-angle-right"></i> <a href="pods.html"> Pods List</a><i class="fa fa-angle-right"></i> Pods Details
                     <div class="box-tools pull-right">
-                        <button class="btn btn-success btn-sm restart">重启</button>
+                        <button id="restart" class="btn btn-success btn-sm restart">重启</button>
                         <button class="btn btn-info btn-sm logs">日志</button>
                         <button class="btn btn-danger btn-sm errorlogs">Describe</button>
                     </div>
@@ -118,6 +118,31 @@
 document.getElementById("kubernetes").setAttribute("class", "active dcjq-parent")
 document.getElementById("kubernetes-sub").setAttribute("style", "display: block")
 document.getElementById("pod").setAttribute("class", "active")
+$('.restart').click(function() {
+    $.ajax({
+        url: 'api/pods/restart',
+        type: 'post',
+        dataType: 'json',
+        data: {
+            'name': {{.pod.Name}},
+            'namespace': {{.pod.Namespace}},
+        },
+        success: function(data) {
+            if (data['status'] == '200') {
+                var msg = data['msg']
+                alert(msg)
+                location.replace("/pods.html");
+            } else if (data['status'] == '300') {
+                var err = data['err']
+                alert(err)
+            }
+        },
+        error: function() {
+            alert('failed!');
+        }
+    });
+
+});
 $('.logs').click(function() {
     $.ajax({
         url: 'api/pods/logs',
@@ -188,4 +213,12 @@ $('.errorlogs').click(function() {
     });
 
 });
+$(function () {
+    var name = {{.appname}}
+    if (name == "gqget-mysql" || name == "redis" || name == "redis-one" ||
+        name == "zookeeper" || name == "gqget-activemq" || name == "fastdfs-tracker" ||
+        name == "fastdfs-storage-pubfile" || name == "fastdfs-storage-prifile") {
+        $('#restart').attr("disabled","disabled")
+    } 
+})
 </script>

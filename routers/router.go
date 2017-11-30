@@ -48,6 +48,7 @@ func init() {
 
 	beego.Router("/api/deploy", &controllers.DeployController{})
 
+	beego.Router("/api/pods/restart", &controllers.PodsController{}, "post:PodsRestart")
 	beego.Router("/api/pods/logs", &controllers.PodsController{}, "post:GetPodsLogs")
 	beego.Router("/api/pods/describe", &controllers.PodsController{}, "post:GetPodsDescribe")
 

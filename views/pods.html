@@ -8,6 +8,7 @@
                         <hr>
                         <thead>
                             <tr>
+                                <th>AppName</th>
                                 <th>PodsName</th>
                                 <!-- <th>Namespaces</th> -->
                                 <!-- <th>Labels</th> -->
@@ -22,7 +23,8 @@
                         <tbody>
                             {{range .podslist}}
                             <tr>
-                                <td><a href="/podsdetails.html?name={{.ObjectMeta.Labels.app}}">{{.ObjectMeta.Name}}</a></td>
+                                <td><a href="/podsdetails.html?name={{.ObjectMeta.Labels.app}}">{{.ObjectMeta.Labels.app}}</a></td>
+                                <td>{{.ObjectMeta.Name}}</td>
                                 <!-- <td>{{.ObjectMeta.Namespace}}</td> -->
                                 <!-- <td>{{.ObjectMeta.Labels.app}}</td> -->
                                 <!-- <td>{{.ObjectMeta.CreationTimestamp}}</td> -->
